@@ -17,7 +17,7 @@ module.exports.setup = (router, uploads, knex) => {
         let todo = {
             todo: request.body.todo.trim(),
             completed: request.body.completed ? 'yes' : 'no',
-            due_at: moment(request.body.due_at.trim()).format('YYYY-MM-DD'),
+            // due_at: moment(request.body.due_at.trim()).format('YYYY-MM-DD'),
             category: request.body.category,
             created_at: now,
             updated_at: now,
