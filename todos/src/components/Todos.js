@@ -1,6 +1,10 @@
 import React from 'react'
+import { connect } from 'react-redux'
+import { browserHistory } from 'react-router'
+
 import Todo from './Todo'
 import AddTodo from './AddTodo'
+import Completed from './Completed'
 
 class Todos extends React.Component {
     constructor(props) {
@@ -10,21 +14,24 @@ class Todos extends React.Component {
         this.toggleTodoComplete = this.toggleTodoComplete.bind(this)
 
         // sets initial empty state
-        this.state = {
-            todos: []
-        }
+        // this.state = {
+        //     todos: []
+        // }
     }
 
     // Lifecycle methods
     componentWillMount() {
+
         this.getTodos()
     }
 
+    // API methods
     getTodos() {
         fetch('/api/v1/todos')
         .then(response => response.json())
         // this.setState changes state
-        .then(todos => this.setState({todos}))
+        // runs render
+        .then(todos => this.props.dispatch({type: 'TODOS_UPDATE', body: todos}))
     }
 
     addTodo(todo) {
@@ -37,20 +44,29 @@ class Todos extends React.Component {
 
     toggleTodoComplete(todoId, isComplete) {
 
-    if (isComplete) {
-        fetch('/api/v1/todos/' + todoId + '/complete')
-        .then(this.getTodos)
-    } else {
-        fetch('/api/v1/todos/' + todoId + '/incomplete')
-        .then(this.getTodos)
-    }
+    // if (isComplete) {
+    //     fetch('/api/v1/todos/' + todoId + '/complete')
+    //     .then(this.getTodos)
+    // } else {
+    //     fetch('/api/v1/todos/' + todoId + '/incomplete')
+    //     .then(this.getTodos)
+    // }
+
+    fetch('api/v1/todos/' + todoId + '/' + (isComplete ? 'complete' : 'incomplete'))
+    .then(this.getTodos)
 
 }
 
     render() {
-        let todos = this.state.todos.map((todo, key) => <Todo description={todo.todo} category={todo.category} id={todo.id} completed={todo.completed} key={key} toggleTodoComplete={this.toggleTodoComplete}/>)
+        let todos = this.props.sharedTodos.map((todo, key) => <Todo description={todo.todo} category={todo.category} id={todo.id} completed={todo.completed} key={key} toggleTodoComplete={this.toggleTodoComplete}/>)
+
+        if (todos.length === 0) {
+            todos = <div className="alert alert-success text-center">Please start by adding a todo above.</div>
+        }
+
         return <div className="container ">
             {/*<AddTodo addTodo={this.addTodo}/>*/}
+            <button className="btn btn-default" type="button" onClick={() => browserHistory.push('/completed')}>View Completed Todos</button>
             <AddTodo addTodo={(todo) => this.addTodo(todo)}/>
         <ul className="list-group ulContainer">
             {/*<Todo description={'qwer'} category={'category'} date="2017-03-14"/>
@@ -64,4 +80,12 @@ class Todos extends React.Component {
     }
 }
 
-export default Todos
+// Map shared Redux state to props
+const mapStateToProps = (redux) => {
+    return {
+        sharedTodos: redux.state.todos
+    }
+}
+
+// Export the component, connected to Redux, for other components to import
+export default connect(mapStateToProps)(Todos)
